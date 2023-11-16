@@ -5,7 +5,7 @@ from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 from django.core.exceptions import ValidationError
 from users.models import User
-from recipes.models import (Ingredient,  Tag, Recipe,
+from recipes.models import (Ingredient, Tag, Recipe,
                             Products, Favorites, Follow, ShoppingList)
 
 
