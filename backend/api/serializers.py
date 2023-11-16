@@ -48,7 +48,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'first_name',
                   'last_name', 'email', 'is_subscribed',
                   'recipes_count', 'recipes',)
-    
+
     def get_recipes(self, obj):
         request = self.context.get('request')
         limit = request.GET.get('recipes_limit')
@@ -200,7 +200,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         fields = ('ingredients', 'tags', 'image',
                   'name', 'text', 'cooking_time', 'author',)
 
-
     def validate_tags(self, data):
         tags = data
         if not tags:
@@ -311,7 +310,8 @@ class FavoritesSerializer(serializers.Serializer):
         return serializer.data
 
     def to_representation(self, instance):
-        return ShortRecipeSerializer(instance.recipe,
+        return ShortRecipeSerializer(
+            instance.recipe,
             context={'request': self.context.get('request')}).data
 
 
@@ -338,5 +338,6 @@ class ShoppingListSerializer(serializers.Serializer):
         return serializer.data
 
     def to_representation(self, instance):
-        return ShortRecipeSerializer(instance.recipe,
+        return ShortRecipeSerializer(
+            instance.recipe,
             context={'request': self.context.get('request')}).data

@@ -122,7 +122,6 @@ class Follow(models.Model):
         verbose_name_plural = 'Подписки'
 
 
-
 class Favorites(models.Model):
     """Модель избранного"""
     user = models.ForeignKey(User,
@@ -138,7 +137,6 @@ class Favorites(models.Model):
     class Meta:
         verbose_name = 'Избранное'
         verbose_name_plural = 'Списки избранного'
-
 
     def __str__(self):
         return f'Избранное {self.user}'

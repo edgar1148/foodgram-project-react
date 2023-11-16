@@ -6,8 +6,10 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import (AllowAny, IsAuthenticated, IsAuthenticatedOrReadOnly)
-from recipes.models import Ingredient, Tag, Recipe, Products, Favorites, ShoppingList, Follow
+from rest_framework.permissions import (AllowAny, IsAuthenticated,
+                                        IsAuthenticatedOrReadOnly)
+from recipes.models import (Ingredient, Tag, Recipe, Products, Favorites,
+                            Follow, ShoppingList,)
 from .serializers import (FavoritesSerializer, IngredientSerializer,
                           RecipeCreateSerializer, RecipeGetSerializer,
                           ChangePasswordSerializer, ShoppingListSerializer,
@@ -71,10 +73,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=kwargs['pk'])
         if request.method == 'POST':
             serializer = ShortRecipeSerializer(recipe, data=request.data,
-                                          context={'request': request})
+                                               context={'request': request})
             serializer.is_valid(raise_exception=True)
             if not Favorites.objects.filter(user=request.user,
-                                           recipe=recipe).exists():
+                                            recipe=recipe).exists():
                 Favorites.objects.create(user=request.user, recipe=recipe)
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
@@ -101,12 +103,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
             context={'request': request, 'recipe_id': pk})
         serializer.is_valid(raise_exception=True)
         response_data = serializer.save(id=pk)
-        return Response({'data': response_data}, status=status.HTTP_201_CREATED)
+        return Response({'data': response_data},
+                        status=status.HTTP_201_CREATED)
 
     def delete_recipe_from_cart(self, request, pk):
 
         get_object_or_404(ShoppingList, user=self.request.user,
-            recipe=get_object_or_404(Recipe, pk=pk)).delete()
+                          recipe=get_object_or_404(Recipe, pk=pk)).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
@@ -116,18 +119,23 @@ class RecipeViewSet(viewsets.ModelViewSet):
         shopping_cart = ShoppingList.objects.filter(user=self.request.user)
         current_list = shopping_list_info(shopping_cart)
         response = HttpResponse(current_list, content_type="text/plain")
-        response['Content-Disposition'] = ('attachment; filename=shopping-list.txt')
+        response['Content-Disposition'] = (
+            'attachment; filename=shopping-list.txt')
         return response
 
+
 def shopping_list_info(shopping_list):
-        recipes = shopping_list.values_list('recipe_id', flat=True)
-        shop_list = Products.objects.filter(recipe__in=recipes).values('ingredient').annotate(amount=Sum('amount'))
-        current_list = 'Список покупок'
-        for i in shop_list:
-            ingredient = Ingredient.objects.get(pk=i['ingredient'])
-            amount = i['amount']
-            current_list += (f'{ingredient.name}, {amount}, {ingredient.measurement_unit}')
-        return current_list
+    recipes = shopping_list.values_list('recipe_id', flat=True)
+    shop_list = Products.objects.filter(
+        recipe__in=recipes).values('ingredient').annotate(
+            amount=Sum('amount'))
+    current_list = 'Список покупок'
+    for i in shop_list:
+        ingredient = Ingredient.objects.get(pk=i['ingredient'])
+        amount = i['amount']
+        current_list += (
+            f'{ingredient.name}, {amount}, {ingredient.measurement_unit}')
+    return current_list
 
 
 class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
@@ -168,7 +176,6 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
         user.set_password(new_password)
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-    
 
     @action(detail=True,
             methods=('post', 'delete'),
@@ -176,19 +183,21 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             permission_classes=(IsAuthenticated,),)
     def subscribe(self, request, pk=None):
         if request.method == 'POST':
-            serializer = self.get_serializer(data=request.data,
+            serializer = self.get_serializer(
+                data=request.data,
                 context={'request': request, 'id': pk})
             serializer.is_valid(raise_exception=True)
             response_data = serializer.save(id=pk)
-            return Response({'properties': response_data}, status=status.HTTP_201_CREATED)
+            return Response({'properties': response_data},
+                            status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            subscription = Follow.objects.filter(user=self.request.user,
-                                             author=get_object_or_404(User, pk=pk))
+            subscription = Follow.objects.filter(
+                user=self.request.user,
+                author=get_object_or_404(User, pk=pk))
             if not subscription.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-
 
     @action(methods=('get',), detail=False,
             serializer_class=SubscriptionSerializer,

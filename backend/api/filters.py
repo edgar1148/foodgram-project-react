@@ -8,10 +8,11 @@ User = get_user_model()
 class RecipeFilter(filters.FilterSet):
     """Фильтрация рецептов"""
     author = filters.ModelChoiceFilter(field_name='author',
-        queryset=User.objects.all(),)
+                                       queryset=User.objects.all(),)
     is_favorited = filters.BooleanFilter(method='get_favorite')
     tags = filters.AllValuesMultipleFilter(field_name='tags__slug')
-    is_in_shopping_cart = filters.BooleanFilter(method='get_is_in_shopping_cart')
+    is_in_shopping_cart = filters.BooleanFilter(
+        method='get_is_in_shopping_cart')
 
     class Meta:
         model = Recipe
