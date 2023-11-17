@@ -4,6 +4,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
 from django.core.exceptions import ValidationError
+
 from users.models import User
 from recipes.models import (Ingredient, Tag, Recipe,
                             Products, Favorites, Follow, ShoppingList)
@@ -134,11 +135,6 @@ class ProductsGetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Products
         fields = ('id', 'name', 'measurement_unit', 'amount')
-
-    def validate_amount(self, value):
-        if value <= 0:
-            raise ValidationError('Ошибка')
-        return value
 
 
 class RecipeGetSerializer(serializers.ModelSerializer):

@@ -8,16 +8,17 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
+
 from recipes.models import (Ingredient, Tag, Recipe, Products, Favorites,
                             Follow, ShoppingList,)
-from .serializers import (FavoritesSerializer, IngredientSerializer,
+from api.serializers import (FavoritesSerializer, IngredientSerializer,
                           RecipeCreateSerializer, RecipeGetSerializer,
                           ChangePasswordSerializer, ShoppingListSerializer,
                           SubscribeSerializer, SubscriptionSerializer,
                           TagSerializer, UserCreateSerializer,
                           OutputUsersSerializer, ShortRecipeSerializer)
-from .pagination import Paginator
-from .filters import NameIngredientsFilter, RecipeFilter
+from api.pagination import Paginator
+from api.filters import NameIngredientsFilter, RecipeFilter
 
 
 User = get_user_model()
