@@ -146,7 +146,7 @@ class Products(models.Model):
         ordering = ('id',)
         verbose_name = 'Продукт',
         verbose_name_plural = 'Продукты'
-    
+
     def __str__(self):
         return f'{self.ingredient} - {self.amount}'
 
@@ -171,7 +171,7 @@ class Follow(models.Model):
         ordering = ('id',)
         verbose_name = 'Подписки'
         verbose_name_plural = 'Подписки'
-    
+
     def __str__(self):
         return f'{self.user.username} - {self.author.username}'
 
