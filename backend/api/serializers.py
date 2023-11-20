@@ -229,7 +229,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError('Одинаковые ингредиенты')
             amount = ingredient_data['amount']
             ingredient = Ingredient.objects.get(id=ingredient_id)
-            if recipe.recipe_ingredients.filter(ingredient=ingredient_id).exists():
+            if recipe.recipe_ingredients.filter(
+                ingredient=ingredient_id).exists():
                 amount += F('amount')
             recipe_ingredient = Products(recipe=recipe, ingredient=ingredient,
                                          amount=amount)

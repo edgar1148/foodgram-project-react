@@ -10,13 +10,13 @@ from rest_framework.permissions import (AllowAny, IsAuthenticated,
                                         IsAuthenticatedOrReadOnly)
 
 from recipes.models import (Ingredient, Tag, Recipe, Products, Favorites,
-                            Follow, ShoppingList,)
+                            ShoppingList,)
 from api.serializers import (FavoritesSerializer, IngredientSerializer,
-                          RecipeCreateSerializer, RecipeGetSerializer,
-                          ChangePasswordSerializer, ShoppingListSerializer,
-                          SubscribeSerializer, SubscriptionSerializer,
-                          TagSerializer, UserCreateSerializer,
-                          OutputUsersSerializer, ShortRecipeSerializer)
+                             RecipeCreateSerializer, RecipeGetSerializer,
+                             ChangePasswordSerializer, ShoppingListSerializer,
+                             SubscribeSerializer, SubscriptionSerializer,
+                             TagSerializer, UserCreateSerializer,
+                             OutputUsersSerializer, ShortRecipeSerializer)
 from api.pagination import Paginator
 from api.filters import NameIngredientsFilter, RecipeFilter
 
@@ -61,7 +61,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         """Выбор сериализатора"""
         try:
             return self.serializer_action_classes[self.action]
-        except:
+        except Exception:
             return RecipeCreateSerializer
 
     def perform_create(self, serializer):
@@ -119,7 +119,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             methods=('get',),
             permission_classes=(IsAuthenticated,),)
     def download_shopping_cart(self, request):
-        shopping_cart = request.user.shopping_list.filter(user=self.request.user)
+        shopping_cart = request.user.shopping_list.filter(
+            user=self.request.user)
         current_list = shopping_list_info(shopping_cart)
         response = HttpResponse(current_list, content_type="text/plain")
         response['Content-Disposition'] = (
@@ -159,7 +160,7 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     def get_serializer_class(self):
         try:
             return self.serializer_action_classes[self.action]
-        except:
+        except Exception:
             return UserCreateSerializer
 
     @action(methods=('get',), detail=False,
@@ -197,8 +198,9 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             return Response({'properties': response_data},
                             status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            user=self.request.user
-            subscription = user.follower.filter(author=get_object_or_404(User, pk=pk))
+            user = self.request.user
+            subscription = user.follower.filter(
+                author=get_object_or_404(User, pk=pk))
             if not subscription.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             subscription.delete()
