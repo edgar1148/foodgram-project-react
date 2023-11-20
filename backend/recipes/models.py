@@ -51,7 +51,7 @@ class Tag(models.Model):
     )
 
     class Meta:
-        ordering = ('-update',)
+        ordering = ('id',)
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
 
@@ -143,7 +143,7 @@ class Products(models.Model):
     )
 
     class Meta:
-        ordering = ('-update',)
+        ordering = ('id',)
         verbose_name = 'Продукт',
         verbose_name_plural = 'Продукты'
     
@@ -168,7 +168,7 @@ class Follow(models.Model):
     )
 
     class Meta:
-        ordering = ('-update',)
+        ordering = ('id',)
         verbose_name = 'Подписки'
         verbose_name_plural = 'Подписки'
     
@@ -194,7 +194,7 @@ class Favorites(models.Model):
     )
 
     class Meta:
-        ordering = ('-update',)
+        ordering = ('id',)
         verbose_name = 'Избранное'
         verbose_name_plural = 'Списки избранного'
 
@@ -220,7 +220,7 @@ class ShoppingList(models.Model):
     )
 
     class Meta:
-        ('-update',)
+        ordering = ('id',)
         verbose_name = 'Список покупок'
         verbose_name_plural = 'Списки покупок'
 

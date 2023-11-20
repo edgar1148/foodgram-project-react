@@ -50,16 +50,19 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filterset_class = RecipeFilter
     pagination_class = Paginator
     http_method_names = ['get', 'post', 'patch', 'delete', ]
+    serializer_action_classes = {
+        'list': RecipeGetSerializer,
+        'retrieve': RecipeGetSerializer,
+        'favorite': FavoritesSerializer,
+        'shopping_cart': ShoppingListSerializer,
+    }
 
     def get_serializer_class(self):
         """Выбор сериализатора"""
-        if self.action in ('list', 'retrieve'):
-            return RecipeGetSerializer
-        elif self.action == 'favorite':
-            return FavoritesSerializer
-        elif self.action == 'shopping_cart':
-            return ShoppingListSerializer
-        return RecipeCreateSerializer
+        try:
+            return self.serializer_action_classes[self.action]
+        except:
+            return RecipeCreateSerializer
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -76,8 +79,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             serializer = ShortRecipeSerializer(recipe, data=request.data,
                                                context={'request': request})
             serializer.is_valid(raise_exception=True)
-            if not Favorites.objects.filter(user=request.user,
-                                            recipe=recipe).exists():
+            if not recipe.favorites.filter(user=request.user).exists():
                 Favorites.objects.create(user=request.user, recipe=recipe)
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
@@ -117,7 +119,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             methods=('get',),
             permission_classes=(IsAuthenticated,),)
     def download_shopping_cart(self, request):
-        shopping_cart = ShoppingList.objects.filter(user=self.request.user)
+        shopping_cart = request.user.shopping_list.filter(user=self.request.user)
         current_list = shopping_list_info(shopping_cart)
         response = HttpResponse(current_list, content_type="text/plain")
         response['Content-Disposition'] = (
@@ -131,9 +133,9 @@ def shopping_list_info(shopping_list):
         recipe__in=recipes).values('ingredient').annotate(
             amount=Sum('amount'))
     current_list = 'Список покупок'
-    for i in shop_list:
-        ingredient = Ingredient.objects.get(pk=i['ingredient'])
-        amount = i['amount']
+    for unit in shop_list:
+        ingredient = Ingredient.objects.get(pk=unit['ingredient'])
+        amount = unit['amount']
         current_list += (
             f'{ingredient.name}, {amount}, {ingredient.measurement_unit}')
     return current_list
@@ -147,15 +149,18 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
     search_fields = ('username',)
     filterset_fields = ('username',)
     permission_classes = (AllowAny,)
+    serializer_action_classes = {
+        'list': OutputUsersSerializer,
+        'retrieve': OutputUsersSerializer,
+        'set_password': ChangePasswordSerializer,
+        'subscribe': SubscribeSerializer,
+    }
 
     def get_serializer_class(self):
-        if self.action in ('list', 'retrieve'):
-            return OutputUsersSerializer
-        elif self.action == 'set_password':
-            return ChangePasswordSerializer
-        elif self.action == 'subscribe':
-            return SubscribeSerializer
-        return UserCreateSerializer
+        try:
+            return self.serializer_action_classes[self.action]
+        except:
+            return UserCreateSerializer
 
     @action(methods=('get',), detail=False,
             permission_classes=(IsAuthenticated,),)
@@ -192,9 +197,8 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             return Response({'properties': response_data},
                             status=status.HTTP_201_CREATED)
         elif request.method == 'DELETE':
-            subscription = Follow.objects.filter(
-                user=self.request.user,
-                author=get_object_or_404(User, pk=pk))
+            user=self.request.user
+            subscription = user.follower.filter(author=get_object_or_404(User, pk=pk))
             if not subscription.exists():
                 return Response(status=status.HTTP_400_BAD_REQUEST)
             subscription.delete()
@@ -206,10 +210,8 @@ class UserViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
             pagination_class=Paginator)
     def subscriptions(self, request):
         user = request.user
-        follow_list = user.follower.all()
-        users_id = follow_list.values_list('author_id', flat=True)
-        users = User.objects.filter(id__in=users_id)
-        paginated_queryset = self.paginate_queryset(users)
+        follow_list = user.following.all()
+        paginated_queryset = self.paginate_queryset(follow_list)
         serializer = self.serializer_class(paginated_queryset,
                                            context={'request': request},
                                            many=True)
