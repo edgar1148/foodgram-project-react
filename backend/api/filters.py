@@ -32,7 +32,7 @@ class RecipeFilter(filters.FilterSet):
 
 class NameIngredientsFilter(filters.FilterSet):
     """Фильтрация ингредиентов"""
-    name = filters.CharFilter(field_name='name')
+    name = filters.CharFilter(field_name='name', lookup_expr='icontains')
 
     class Meta:
         model = Ingredient

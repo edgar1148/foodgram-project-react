@@ -8,6 +8,7 @@ from django.core.exceptions import ValidationError
 from users.models import User
 from recipes.models import (Ingredient, Tag, Recipe,
                             Products, Favorites, Follow, ShoppingList)
+from api.constants import MIN_VAL, MAX_VAL
 
 
 class OutputUsersSerializer(UserSerializer):
@@ -51,7 +52,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
                   'recipes_count', 'recipes',)
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
+        request = self.context['request'].user
         limit = request.GET.get('recipes_limit')
         recipes = obj.recipes.all()
         if limit:
@@ -60,7 +61,7 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         return serializer.data
 
     def get_attribute(self, obj):
-        return Recipe.objects.filter(author=obj.author)
+        return obj.author.recipes.all()
 
     def get_is_subscribed(self, obj):
         request = self.context.get('request')
@@ -77,7 +78,7 @@ class SubscribeSerializer(serializers.Serializer):
     """Управление подписками"""
 
     def validate(self, data):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         author = get_object_or_404(User, pk=self.context['id'])
         if user == author:
             raise serializers.ValidationError()
@@ -86,7 +87,7 @@ class SubscribeSerializer(serializers.Serializer):
         return data
 
     def create(self, validated_data):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         author = get_object_or_404(User, pk=validated_data['id'])
         Follow.objects.create(user=user, author=author)
         serializer = SubscriptionSerializer(
@@ -175,7 +176,8 @@ class RecipeGetSerializer(serializers.ModelSerializer):
 class AddIngredientsSerializer(serializers.ModelSerializer):
     """Сериализатор добавления ингредиентов"""
     id = serializers.IntegerField(source='ingredient.id')
-    amount = serializers.IntegerField(min_value=1)
+    amount = serializers.IntegerField(min_value=MIN_VAL,
+                                      max_value=MAX_VAL)
 
     class Meta:
         model = Products
@@ -189,7 +191,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     ingredients = AddIngredientsSerializer(many=True)
     image = Base64ImageField(required=True, allow_null=False)
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
-    cooking_time = serializers.IntegerField(min_value=1)
+    cooking_time = serializers.IntegerField(min_value=MIN_VAL,
+                                            max_value=MAX_VAL)
 
     class Meta:
         model = Recipe
